@@ -1,147 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Triangle Tracker</title>
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="css/triangle.css" />
-  </head>
-  <body>
-    <header class="app-header">
-      <div>
-        <h1>Job Triangle</h1>
-        <p id="connection-status" class="status-badge">Checking storage mode...</p>
-      </div>
-      <div class="header-actions">
-        <button id="toggle-form-btn" type="button">Add Application</button>
-        <button id="refresh-btn" type="button">Refresh</button>
-      </div>
-    </header>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- App Stylesheets -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/triangle.css">
+    <!-- Firebase SDKs (Modular Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-group">
+                <span class="logo-icon">▲</span>
+                <h1>Job Triangle</h1>
+            </div>
+            <div class="header-status">
+                <span id="storage-badge" class="badge mode-local">Local Mode</span>
+                <button id="btn-toggle-form" class="btn btn-primary">+ Add Job</button>
+            </div>
+        </header>
 
-    <main>
-      <section class="analytics-panel" aria-label="Job search analytics">
-        <article class="metric-card">
-          <h2>Total Applications (This Month)</h2>
-          <p id="metric-total">0</p>
-        </article>
-        <article class="metric-card">
-          <h2>Response Rate</h2>
-          <p id="metric-response">0%</p>
-        </article>
-        <article class="metric-card">
-          <h2>Conversion Rate</h2>
-          <p id="metric-conversion">0%</p>
-        </article>
-        <article class="metric-card">
-          <h2>Avg Days in Stage</h2>
-          <p id="metric-avg-days">Applied: 0d</p>
-        </article>
-      </section>
+        <!-- Analytics Dashboard Panel -->
+        <section class="analytics-panel" id="analytics-panel">
+            <div class="metric-card">
+                <span class="metric-label">Applications (Month)</span>
+                <span class="metric-value" id="metric-month-count">0</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Response Rate</span>
+                <span class="metric-value" id="metric-response-rate">0%</span>
+                <span class="metric-subtext">Screenings / Applied</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Interview Conversion</span>
+                <span class="metric-value" id="metric-conversion-rate">0%</span>
+                <span class="metric-subtext">Offers / Interviews</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Avg Days in Stage</span>
+                <span class="metric-value" id="metric-avg-days">0d</span>
+            </div>
+        </section>
 
-      <section id="alerts-banner" class="alerts-banner" aria-live="polite"></section>
+        <!-- Alerts & Reminders Banner -->
+        <section class="alerts-banner hidden" id="alerts-banner">
+            <div class="alerts-header">
+                <span class="alert-icon">⚠️</span>
+                <strong>Action Items & Follow-ups Required</strong>
+            </div>
+            <ul class="alerts-list" id="alerts-list"></ul>
+        </section>
 
-      <section class="triangle-stage" aria-label="Job pipeline visualization">
-        <h2>Pipeline Triangle</h2>
-        <div class="triangle-wrapper">
-          <svg id="job-triangle" viewBox="0 0 300 260" role="img" aria-label="Job application stage triangle">
-            <defs>
-              <clipPath id="clip-applied"><polygon points="20,240 280,240 254,192 46,192" /></clipPath>
-              <clipPath id="clip-screening"><polygon points="46,192 254,192 228,144 72,144" /></clipPath>
-              <clipPath id="clip-interview"><polygon points="72,144 228,144 202,96 98,96" /></clipPath>
-              <clipPath id="clip-offer"><polygon points="98,96 202,96 176,48 124,48" /></clipPath>
-              <clipPath id="clip-closed"><polygon points="124,48 176,48 150,8" /></clipPath>
-            </defs>
+        <!-- SVG Water-Fill Job Triangle Visualization -->
+        <section class="triangle-container">
+            <div class="triangle-wrapper">
+                <svg viewBox="0 0 400 350" preserveAspectRatio="xMidYMid meet" id="job-triangle-svg">
+                    <defs>
+                        <!-- Clip Paths for 5 Horizontal Triangle Tiers -->
+                        <clipPath id="clip-tier-closed"><polygon points="200,20 220,60 180,60" /></clipPath>
+                        <clipPath id="clip-tier-offer"><polygon points="180,62 220,62 248,118 152,118" /></clipPath>
+                        <clipPath id="clip-tier-interview"><polygon points="152,120 248,120 288,200 112,200" /></clipPath>
+                        <clipPath id="clip-tier-screening"><polygon points="112,202 288,202 328,280 72,280" /></clipPath>
+                        <clipPath id="clip-tier-applied"><polygon points="72,282 328,282 360,340 40,340" /></clipPath>
 
-            <g class="tier tier-applied"><polygon points="20,240 280,240 254,192 46,192" /><g clip-path="url(#clip-applied)"><rect id="fill-applied" class="fill-rect" x="20" y="240" width="260" height="0" /><path class="wave" d="M0 8 Q 15 0 30 8 T 60 8 T 90 8 T 120 8 T 150 8 T 180 8 T 210 8 T 240 8 T 270 8 V 40 H 0 Z" /></g></g>
-            <g class="tier tier-screening"><polygon points="46,192 254,192 228,144 72,144" /><g clip-path="url(#clip-screening)"><rect id="fill-screening" class="fill-rect" x="46" y="192" width="208" height="0" /><path class="wave" d="M0 8 Q 15 0 30 8 T 60 8 T 90 8 T 120 8 T 150 8 T 180 8 T 210 8 V 40 H 0 Z" /></g></g>
-            <g class="tier tier-interview"><polygon points="72,144 228,144 202,96 98,96" /><g clip-path="url(#clip-interview)"><rect id="fill-interview" class="fill-rect" x="72" y="144" width="156" height="0" /><path class="wave" d="M0 8 Q 15 0 30 8 T 60 8 T 90 8 T 120 8 T 150 8 V 40 H 0 Z" /></g></g>
-            <g class="tier tier-offer"><polygon points="98,96 202,96 176,48 124,48" /><g clip-path="url(#clip-offer)"><rect id="fill-offer" class="fill-rect" x="98" y="96" width="104" height="0" /><path class="wave" d="M0 8 Q 15 0 30 8 T 60 8 T 90 8 V 40 H 0 Z" /></g></g>
-            <g class="tier tier-closed"><polygon points="124,48 176,48 150,8" /><g clip-path="url(#clip-closed)"><rect id="fill-closed" class="fill-rect" x="124" y="48" width="52" height="0" /><path class="wave" d="M0 8 Q 8 0 16 8 T 32 8 T 48 8 V 40 H 0 Z" /></g></g>
-          </svg>
-        </div>
-      </section>
+                        <!-- Gradient Fills -->
+                        <linearGradient id="gold-fill" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="#d97706" />
+                            <stop offset="100%" stop-color="#f59e0b" />
+                        </linearGradient>
+                        <linearGradient id="teal-fill" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="#0d9488" />
+                            <stop offset="100%" stop-color="#14b8a6" />
+                        </linearGradient>
+                    </defs>
 
-      <section class="form-card" id="application-form-section">
-        <h2>Add / Update Application</h2>
-        <form id="application-form">
-          <input type="hidden" id="application-id" />
-          <div class="form-grid">
-            <label>Company Name<input id="company" name="company" type="text" required /></label>
-            <label>Role Title<input id="role" name="role" type="text" required /></label>
-            <label>Date Applied<input id="dateApplied" name="dateApplied" type="date" required /></label>
-            <label>Source
-              <select id="source" name="source" required>
-                <option value="Referral">Referral</option>
-                <option value="Job Portal">Job Portal</option>
-                <option value="LinkedIn">LinkedIn</option>
-                <option value="Direct">Direct</option>
-              </select>
-            </label>
-            <label>Status Stage
-              <select id="status" name="status" required>
-                <option value="Applied">Applied</option>
-                <option value="Screening">Screening</option>
-                <option value="Interview">Interview</option>
-                <option value="Offer">Offer</option>
-                <option value="Closed">Closed</option>
-              </select>
-            </label>
-            <label>Next Action<input id="nextAction" name="nextAction" type="text" required /></label>
-            <label>Action Due Date<input id="dueDate" name="dueDate" type="date" required /></label>
-            <label class="full-width">Notes<textarea id="notes" name="notes" rows="3"></textarea></label>
-          </div>
-          <div class="form-actions">
-            <button type="submit">Save Application</button>
-            <button type="reset" id="reset-form-btn">Clear</button>
-          </div>
-        </form>
-      </section>
+                    <!-- Triangle Outer Outline Base -->
+                    <polygon points="200,20 360,340 40,340" class="triangle-outline" />
 
-      <section class="table-section" aria-label="Pipeline table">
-        <div class="table-toolbar">
-          <label>Filter Stage
-            <select id="status-filter">
-              <option value="All">All</option>
-              <option value="Applied">Applied</option>
-              <option value="Screening">Screening</option>
-              <option value="Interview">Interview</option>
-              <option value="Offer">Offer</option>
-              <option value="Closed">Closed</option>
-            </select>
-          </label>
-          <label>Sort By
-            <select id="sort-by">
-              <option value="updatedAt">Last Updated</option>
-              <option value="dateApplied">Date Applied</option>
-              <option value="company">Company</option>
-            </select>
-          </label>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Company</th>
-              <th>Role</th>
-              <th>Date Applied</th>
-              <th>Source</th>
-              <th>Status</th>
-              <th>Next Action</th>
-              <th>Due</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="applications-table-body"></tbody>
-        </table>
-      </section>
-    </main>
+                    <!-- Tier 5: Closed (Apex) -->
+                    <g clip-path="url(#clip-tier-closed)">
+                        <rect x="0" y="20" width="400" height="40" class="tier-bg" />
+                        <rect id="fill-closed" x="0" y="60" width="400" height="40" fill="url(#gold-fill)" class="water-fill" />
+                    </g>
+                    <!-- Tier 4: Offer -->
+                    <g clip-path="url(#clip-tier-offer)">
+                        <rect x="0" y="62" width="400" height="56" class="tier-bg" />
+                        <rect id="fill-offer" x="0" y="118" width="400" height="56" fill="url(#gold-fill)" class="water-fill" />
+                    </g>
+                    <!-- Tier 3: Interview -->
+                    <g clip-path="url(#clip-tier-interview)">
+                        <rect x="0" y="120" width="400" height="80" class="tier-bg" />
+                        <rect id="fill-interview" x="0" y="200" width="400" height="80" fill="url(#teal-fill)" class="water-fill" />
+                    </g>
+                    <!-- Tier 2: Screening -->
+                    <g clip-path="url(#clip-tier-screening)">
+                        <rect x="0" y="202" width="400" height="78" class="tier-bg" />
+                        <rect id="fill-screening" x="0" y="280" width="400" height="78" fill="url(#teal-fill)" class="water-fill" />
+                    </g>
+                    <!-- Tier 1: Applied (Base) -->
+                    <g clip-path="url(#clip-tier-applied)">
+                        <rect x="0" y="282" width="400" height="58" class="tier-bg" />
+                        <rect id="fill-applied" x="0" y="340" width="400" height="58" fill="url(#teal-fill)" class="water-fill" />
+                    </g>
 
-    <footer>
-      <small>Job Triangle Tracker • Built with HTML, CSS, JavaScript, and Firebase Firestore</small>
-    </footer>
+                    <!-- Tier Labels & Counts Overlay -->
+                    <text x="200" y="45" class="tier-label">CLOSED (<span id="count-closed">0</span>)</text>
+                    <text x="200" y="95" class="tier-label">OFFER (<span id="count-offer">0</span>)</text>
+                    <text x="200" y="165" class="tier-label">INTERVIEW (<span id="count-interview">0</span>)</text>
+                    <text x="200" y="245" class="tier-label">SCREENING (<span id="count-screening">0</span>)</text>
+                    <text x="200" y="315" class="tier-label">APPLIED (<span id="count-applied">0</span>)</text>
+                </svg>
+            </div>
+        </section>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+        <!-- Application Form Drawer / Section -->
+        <section class="form-card hidden" id="form-section">
+            <div class="form-header">
+                <h3 id="form-title">Add Job Application</h3>
+                <button type="button" class="btn-close" id="btn-close-form">✕</button>
+            </div>
+            <form id="job-form">
+                <input type="hidden" id="app-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="company">Company Name *</label>
+                        <input type="text" id="company" required placeholder="e.g. Google">
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role Title *</label>
+                        <input type="text" id="role" required placeholder="e.g. Software Engineer">
+                    </div>
+                    <div class="form-group">
+                        <label for="dateApplied">Date Applied *</label>
+                        <input type="date" id="dateApplied" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="source">Source</label>
+                        <select id="source">
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Referral">Referral</option>
+                            <option value="Job Portal">Job Portal</option>
+                            <option value="Direct DM">Direct DM / Outreach</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Stage Status</label>
+                        <select id="status">
+                            <option value="Applied">Applied</option>
+                            <option value="Screening">Screening</option>
+                            <option value="Interview">Interview</option>
+                            <option value="Offer">Offer</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dueDate">Next Action Due Date</label>
+                        <input type="date" id="dueDate">
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="nextAction">Next Action / Follow-up</label>
+                    <input type="text" id="nextAction" placeholder="e.g. Send thank you note to recruiter">
+                </div>
+                <div class="form-group full-width">
+                    <label for="notes">Notes / Prep Details</label>
+                    <textarea id="notes" rows="2" placeholder="Interview panel notes, CTC discussed, or rejection learning..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-form">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Application</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Applications Table Section -->
+        <section class="table-section">
+            <div class="table-controls">
+                <h2>Pipeline Applications</h2>
+                <div class="filter-controls">
+                    <select id="filter-status">
+                        <option value="ALL">All Stages</option>
+                        <option value="Applied">Applied</option>
+                        <option value="Screening">Screening</option>
+                        <option value="Interview">Interview</option>
+                        <option value="Offer">Offer</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th>Company & Role</th>
+                            <th>Date Applied</th>
+                            <th>Source</th>
+                            <th>Status Stage</th>
+                            <th>Next Action / Due</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="app-table-body">
+                        <!-- Dynamic Rows Inserted Here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Application JavaScript Bundle -->
     <script type="module" src="js/app.js"></script>
-  </body>
+</body>
 </html>
