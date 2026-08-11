@@ -329,3 +329,31 @@ input:focus, select:focus, textarea:focus {
 .hidden {
   display: none !important;
 }
+
+/* Mobile Optimization Overrides */
+@media (max-width: 600px) {
+  body {
+    padding: 0.5rem;
+  }
+  
+  .app-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .analytics-panel {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .metric-card {
+    padding: 0.75rem;
+  }
+
+  .metric-value {
+    font-size: 1.2rem;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
