@@ -6,60 +6,43 @@ import { renderTable, renderAlerts, openForm, closeForm } from './ui.js';
 let cachedApps = [];
 
 async function refreshApp() {
-  cachedApps = await fetchApplications();
-  
-  // 1. Update Water Triangle Visuals
-  updateTriangleVisualization(cachedApps);
-
-  // 2. Compute and Render Analytics Panel
-  const analytics = calculateAnalytics(cachedApps);
-  renderAnalyticsPanel(analytics);
-
-  // 3. Render Alerts & Reminders Banner
-  renderAlerts(cachedApps);
-
-  // 4. Render Table
-  renderTable(cachedApps, refreshApp);
+  try {
+    cachedApps = await fetchApplications();
+    updateTriangleVisualization(cachedApps);
+    const analytics = calculateAnalytics(cachedApps);
+    renderAnalyticsPanel(analytics);
+    renderAlerts(cachedApps);
+    renderTable(cachedApps, refreshApp);
+  } catch (err) {
+    console.error("Error refreshing app data:", err);
+  }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  // Set default date applied to today
-  const dateInput = document.getElementById('dateApplied');
-  if (dateInput) {
-    dateInput.value = new Date().toISOString().split('T')[0];
-  }
-
-  // Set Storage Mode Badge
-  const storageBadge = document.getElementById('storage-badge');
-  const mode = getStorageMode();
-  if (storageBadge) {
-    storageBadge.textContent = `${mode} Mode`;
-    if (mode === 'Firebase') {
-      storageBadge.className = 'badge mode-firebase';
-    } else {
-      storageBadge.className = 'badge mode-local';
-    }
-  }
-
-  // Event Listeners for Form
+// Ensure event listeners bind immediately regardless of DOM timing
+function bindEvents() {
   const btnToggleForm = document.getElementById('btn-toggle-form');
   const btnCloseForm = document.getElementById('btn-close-form');
   const btnCancelForm = document.getElementById('btn-cancel-form');
   const jobForm = document.getElementById('job-form');
   const filterStatus = document.getElementById('filter-status');
 
-  if (btnToggleForm) btnToggleForm.addEventListener('click', openForm);
-  if (btnCloseForm) btnCloseForm.addEventListener('click', closeForm);
-  if (btnCancelForm) btnCancelForm.addEventListener('click', closeForm);
+  if (btnToggleForm) {
+    btnToggleForm.onclick = (e) => {
+      e.preventDefault();
+      openForm();
+    };
+  }
+
+  if (btnCloseForm) btnCloseForm.onclick = () => closeForm();
+  if (btnCancelForm) btnCancelForm.onclick = () => closeForm();
 
   if (filterStatus) {
-    filterStatus.addEventListener('change', () => renderTable(cachedApps, refreshApp));
+    filterStatus.onchange = () => renderTable(cachedApps, refreshApp);
   }
 
   if (jobForm) {
-    jobForm.addEventListener('submit', async (e) => {
+    jobForm.onsubmit = async (e) => {
       e.preventDefault();
-      
       const formData = {
         id: document.getElementById('app-id').value || null,
         company: document.getElementById('company').value.trim(),
@@ -75,9 +58,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       await saveApplication(formData);
       closeForm();
       await refreshApp();
-    });
+    };
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const dateInput = document.getElementById('dateApplied');
+  if (dateInput) {
+    dateInput.value = new Date().toISOString().split('T')[0];
   }
 
-  // Initial Load
+  bindEvents();
+
+  const storageBadge = document.getElementById('storage-badge');
+  const mode = getStorageMode();
+  if (storageBadge) {
+    storageBadge.textContent = `${mode} Mode`;
+    storageBadge.className = mode === 'Firebase' ? 'badge mode-firebase' : 'badge mode-local';
+  }
+
   await refreshApp();
 });
