@@ -1,78 +1,99 @@
-import { db, isFirebaseEnabled } from "./firebase-config.js";
+import { initFirebase } from './firebase-config.js';
 
-const STORAGE_KEY = "jobTriangleApplications";
+const LOCAL_STORAGE_KEY = 'job_triangle_apps';
 
-function normalizeApplication(data, id = data.id) {
-  return {
-    id: id || crypto.randomUUID(),
-    company: data.company || "",
-    role: data.role || "",
-    dateApplied: data.dateApplied || "",
-    source: data.source || "",
-    status: data.status || "Applied",
-    nextAction: data.nextAction || "",
-    dueDate: data.dueDate || "",
-    updatedAt: data.updatedAt || new Date().toISOString(),
-    notes: data.notes || ""
-  };
+const { db, isFirebaseEnabled } = initFirebase();
+
+export function getStorageMode() {
+  return isFirebaseEnabled ? 'Firebase' : 'Local';
 }
 
-function readLocal() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  const parsed = raw ? JSON.parse(raw) : [];
-  return parsed.map((entry) => normalizeApplication(entry, entry.id));
-}
-
-function writeLocal(applications) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
-}
-
-export async function getApplications() {
+// Fetch all applications
+export async function fetchApplications() {
   if (isFirebaseEnabled && db) {
-    const snapshot = await db.collection("applications").get();
-    return snapshot.docs.map((doc) => normalizeApplication(doc.data(), doc.id));
+    try {
+      const snapshot = await db.collection('applications').get();
+      const apps = [];
+      snapshot.forEach(doc => {
+        apps.push({ id: doc.id, ...doc.data() });
+      });
+      return apps;
+    } catch (err) {
+      console.error("Error fetching from Firestore, falling back to LocalStorage:", err);
+      return getLocalApps();
+    }
+  } else {
+    return getLocalApps();
   }
-  return readLocal();
 }
 
-export async function addApplication(appData) {
-  const payload = normalizeApplication({ ...appData, updatedAt: new Date().toISOString() });
+// Save or Update an Application
+export async function saveApplication(appData) {
+  const now = new Date().toISOString();
+  
+  if (appData.id) {
+    // Update existing
+    const payload = { ...appData, updatedAt: now };
+    if (isFirebaseEnabled && db) {
+      await db.collection('applications').doc(appData.id).update(payload);
+      return payload;
+    } else {
+      const apps = getLocalApps();
+      const index = apps.findIndex(a => a.id === appData.id);
+      if (index !== -1) {
+        apps[index] = payload;
+        saveLocalApps(apps);
+      }
+      return payload;
+    }
+  } else {
+    // Create new
+    const id = 'app_' + Date.now();
+    const newApp = { 
+      id, 
+      company: appData.company || '',
+      role: appData.role || '',
+      dateApplied: appData.dateApplied || now.split('T')[0],
+      source: appData.source || 'Other',
+      status: appData.status || 'Applied',
+      nextAction: appData.nextAction || '',
+      dueDate: appData.dueDate || '',
+      notes: appData.notes || '',
+      statusUpdatedAt: appData.statusUpdatedAt || now,
+      createdAt: now,
+      updatedAt: now
+    };
 
-  if (isFirebaseEnabled && db) {
-    await db.collection("applications").doc(payload.id).set(payload);
-    return payload;
+    if (isFirebaseEnabled && db) {
+      const docRef = await db.collection('applications').add(newApp);
+      newApp.id = docRef.id;
+      return newApp;
+    } else {
+      const apps = getLocalApps();
+      apps.push(newApp);
+      saveLocalApps(apps);
+      return newApp;
+    }
   }
-
-  const applications = readLocal();
-  applications.push(payload);
-  writeLocal(applications);
-  return payload;
 }
 
-export async function updateApplication(id, updatedFields) {
-  if (isFirebaseEnabled && db) {
-    const ref = db.collection("applications").doc(id);
-    const existing = await ref.get();
-    const current = existing.exists ? existing.data() : {};
-    const payload = normalizeApplication({ ...current, ...updatedFields, updatedAt: new Date().toISOString() }, id);
-    await ref.set(payload, { merge: true });
-    return payload;
-  }
-
-  const applications = readLocal();
-  const current = applications.find((entry) => entry.id === id) || {};
-  const merged = normalizeApplication({ ...current, ...updatedFields, updatedAt: new Date().toISOString() }, id);
-  const next = applications.map((entry) => (entry.id === id ? merged : entry));
-  writeLocal(next);
-  return merged;
-}
-
+// Delete an application
 export async function deleteApplication(id) {
   if (isFirebaseEnabled && db) {
-    await db.collection("applications").doc(id).delete();
-    return;
+    await db.collection('applications').doc(id).delete();
+  } else {
+    const apps = getLocalApps();
+    const filtered = apps.filter(a => a.id !== id);
+    saveLocalApps(filtered);
   }
+}
 
-  const applications = readLocal().filter((entry) => entry.id !== id);
-  writeLocal(applications);
+// LocalStorage Helpers
+function getLocalApps() {
+  const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+function saveLocalApps(apps) {
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(apps));
 }
