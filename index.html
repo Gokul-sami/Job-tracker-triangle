@@ -25,7 +25,7 @@
             </div>
             <div class="header-status">
                 <span id="storage-badge" class="badge mode-local">Local Mode</span>
-                <button id="btn-toggle-form" class="btn btn-primary">+ Add Job</button>
+                <button id="btn-toggle-form" class="btn btn-primary" type="button">+ Add Job</button>
             </div>
         </header>
 
@@ -63,7 +63,7 @@
         <!-- SVG Water-Fill Job Triangle Visualization -->
         <section class="triangle-container">
             <div class="triangle-wrapper">
-                <svg viewBox="0 0 400 350" preserveAspectRatio="xMidYMid meet" id="job-triangle-svg">
+                <svg viewBox="0 0 400 360" preserveAspectRatio="xMidYMid meet" id="job-triangle-svg">
                     <defs>
                         <!-- Clip Paths for 5 Horizontal Triangle Tiers -->
                         <clipPath id="clip-tier-closed"><polygon points="200,20 220,60 180,60" /></clipPath>
@@ -112,12 +112,12 @@
                         <rect id="fill-applied" x="0" y="340" width="400" height="58" fill="url(#teal-fill)" class="water-fill" />
                     </g>
 
-                    <!-- Tier Labels & Counts Overlay -->
-                    <text x="200" y="45" class="tier-label">CLOSED (<span id="count-closed">0</span>)</text>
-                    <text x="200" y="95" class="tier-label">OFFER (<span id="count-offer">0</span>)</text>
-                    <text x="200" y="165" class="tier-label">INTERVIEW (<span id="count-interview">0</span>)</text>
-                    <text x="200" y="245" class="tier-label">SCREENING (<span id="count-screening">0</span>)</text>
-                    <text x="200" y="315" class="tier-label">APPLIED (<span id="count-applied">0</span>)</text>
+                    <!-- Separate Tier Labels Positioned Centrally in Each Band -->
+                    <text x="200" y="42" class="tier-label">CLOSED (<tspan id="count-closed">0</tspan>)</text>
+                    <text x="200" y="90" class="tier-label">OFFER (<tspan id="count-offer">0</tspan>)</text>
+                    <text x="200" y="160" class="tier-label">INTERVIEW (<tspan id="count-interview">0</tspan>)</text>
+                    <text x="200" y="240" class="tier-label">SCREENING (<tspan id="count-screening">0</tspan>)</text>
+                    <text x="200" y="310" class="tier-label">APPLIED (<tspan id="count-applied">0</tspan>)</text>
                 </svg>
             </div>
         </section>
