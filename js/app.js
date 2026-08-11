@@ -1,94 +1,83 @@
-import { initFirebase, isFirebaseEnabled } from "./firebase-config.js";
-import { getApplications } from "./storage.js";
-import { renderAppTable, renderAlerts, handleFormSubmit, bindTableActions } from "./ui.js";
-import { updateTriangleVisualization } from "./triangle.js";
-import { calculateAnalytics, renderAnalyticsPanel } from "./analytics.js";
+import { fetchApplications, saveApplication, getStorageMode } from './storage.js';
+import { updateTriangleVisualization } from './triangle.js';
+import { calculateAnalytics, renderAnalyticsPanel } from './analytics.js';
+import { renderTable, renderAlerts, openForm, closeForm } from './ui.js';
 
-let cachedApplications = [];
+let cachedApps = [];
 
-function updateConnectionStatus() {
-  const statusEl = document.getElementById("connection-status");
-  if (!statusEl) return;
+async function refreshApp() {
+  cachedApps = await fetchApplications();
+  
+  // 1. Update Water Triangle Visuals
+  updateTriangleVisualization(cachedApps);
 
-  statusEl.textContent = isFirebaseEnabled ? "Firebase Mode Active" : "Local Mode Active";
-  statusEl.style.color = isFirebaseEnabled ? "#14b8a6" : "#f59e0b";
+  // 2. Compute and Render Analytics Panel
+  const analytics = calculateAnalytics(cachedApps);
+  renderAnalyticsPanel(analytics);
+
+  // 3. Render Alerts & Reminders Banner
+  renderAlerts(cachedApps);
+
+  // 4. Render Table
+  renderTable(cachedApps, refreshApp);
 }
 
-function applyFilterAndSort() {
-  const filter = document.getElementById("status-filter")?.value || "All";
-  const sortBy = document.getElementById("sort-by")?.value || "updatedAt";
-
-  let data = [...cachedApplications];
-  if (filter !== "All") {
-    data = data.filter((app) => app.status === filter);
+document.addEventListener('DOMContentLoaded', async () => {
+  // Set default date applied to today
+  const dateInput = document.getElementById('dateApplied');
+  if (dateInput) {
+    dateInput.value = new Date().toISOString().split('T')[0];
   }
 
-  data.sort((a, b) => {
-    if (sortBy === "company") return a.company.localeCompare(b.company);
-    return new Date(b[sortBy] || 0).getTime() - new Date(a[sortBy] || 0).getTime();
-  });
+  // Set Storage Mode Badge
+  const storageBadge = document.getElementById('storage-badge');
+  const mode = getStorageMode();
+  if (storageBadge) {
+    storageBadge.textContent = `${mode} Mode`;
+    if (mode === 'Firebase') {
+      storageBadge.className = 'badge mode-firebase';
+    } else {
+      storageBadge.className = 'badge mode-local';
+    }
+  }
 
-  return data;
-}
+  // Event Listeners for Form
+  const btnToggleForm = document.getElementById('btn-toggle-form');
+  const btnCloseForm = document.getElementById('btn-close-form');
+  const btnCancelForm = document.getElementById('btn-cancel-form');
+  const jobForm = document.getElementById('job-form');
+  const filterStatus = document.getElementById('filter-status');
 
-async function refreshUI() {
-  cachedApplications = await getApplications();
-  const displayData = applyFilterAndSort();
+  if (btnToggleForm) btnToggleForm.addEventListener('click', openForm);
+  if (btnCloseForm) btnCloseForm.addEventListener('click', closeForm);
+  if (btnCancelForm) btnCancelForm.addEventListener('click', closeForm);
 
-  renderAppTable(displayData);
-  renderAlerts(cachedApplications);
-  updateTriangleVisualization(cachedApplications);
-  renderAnalyticsPanel(calculateAnalytics(cachedApplications));
-}
+  if (filterStatus) {
+    filterStatus.addEventListener('change', () => renderTable(cachedApps, refreshApp));
+  }
 
-function populateFormForEdit(id) {
-  const app = cachedApplications.find((item) => item.id === id);
-  if (!app) return;
+  if (jobForm) {
+    jobForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        id: document.getElementById('app-id').value || null,
+        company: document.getElementById('company').value.trim(),
+        role: document.getElementById('role').value.trim(),
+        dateApplied: document.getElementById('dateApplied').value,
+        source: document.getElementById('source').value,
+        status: document.getElementById('status').value,
+        nextAction: document.getElementById('nextAction').value.trim(),
+        dueDate: document.getElementById('dueDate').value,
+        notes: document.getElementById('notes').value.trim()
+      };
 
-  const fields = ["company", "role", "dateApplied", "source", "status", "nextAction", "dueDate", "notes"];
-  fields.forEach((field) => {
-    const element = document.getElementById(field);
-    if (element) element.value = app[field] || "";
-  });
-
-  const idField = document.getElementById("application-id");
-  if (idField) idField.value = app.id;
-
-  document.getElementById("application-form-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function bindEvents() {
-  const form = document.getElementById("application-form");
-  const refreshButton = document.getElementById("refresh-btn");
-  const toggleButton = document.getElementById("toggle-form-btn");
-  const formSection = document.getElementById("application-form-section");
-
-  form?.addEventListener("submit", async (event) => {
-    const didSave = await handleFormSubmit(event);
-    if (didSave) await refreshUI();
-  });
-
-  refreshButton?.addEventListener("click", refreshUI);
-
-  ["status-filter", "sort-by"].forEach((id) => {
-    document.getElementById(id)?.addEventListener("change", () => {
-      renderAppTable(applyFilterAndSort());
+      await saveApplication(formData);
+      closeForm();
+      await refreshApp();
     });
-  });
+  }
 
-  toggleButton?.addEventListener("click", () => {
-    if (!formSection) return;
-    formSection.hidden = !formSection.hidden;
-  });
-
-  bindTableActions({ onRefresh: refreshUI, onEdit: populateFormForEdit });
-}
-
-function initializeApp() {
-  initFirebase();
-  updateConnectionStatus();
-  bindEvents();
-  refreshUI();
-}
-
-document.addEventListener("DOMContentLoaded", initializeApp);
+  // Initial Load
+  await refreshApp();
+});
