@@ -3,7 +3,7 @@
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 1rem;
+  padding: 1.5rem 1rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,7 +12,7 @@
 
 .triangle-wrapper {
   width: 100%;
-  max-width: 380px;
+  max-width: 480px;
   margin: 0 auto;
 }
 
@@ -23,8 +23,8 @@
 }
 
 .tier-bg {
-  fill: rgba(15, 23, 42, 0.8);
-  stroke: rgba(51, 65, 85, 0.5);
+  fill: rgba(15, 23, 42, 0.85);
+  stroke: rgba(51, 65, 85, 0.6);
   stroke-width: 1;
 }
 
@@ -37,11 +37,16 @@
 /* Tier Label Alignment inside SVG */
 .tier-label {
   fill: #ffffff;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   text-anchor: middle;
   dominant-baseline: central;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   pointer-events: none;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* Slightly smaller font for top apex tier to prevent side clipping */
+.label-apex {
+  font-size: 10px;
 }
