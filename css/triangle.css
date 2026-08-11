@@ -1,0 +1,36 @@
+.triangle-wrapper {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+#job-triangle {
+  width: 100%;
+  height: auto;
+}
+
+.tier polygon {
+  fill: rgba(15, 23, 42, 0.65);
+  stroke: #334155;
+  stroke-width: 1;
+}
+
+.tier-applied .fill-rect { fill: rgba(20, 184, 166, 0.58); }
+.tier-screening .fill-rect { fill: rgba(45, 212, 191, 0.58); }
+.tier-interview .fill-rect { fill: rgba(94, 234, 212, 0.58); }
+.tier-offer .fill-rect { fill: rgba(153, 246, 228, 0.58); }
+.tier-closed .fill-rect { fill: rgba(217, 119, 6, 0.7); }
+
+.fill-rect {
+  transition: y 0.7s ease, height 0.7s ease;
+}
+
+.wave {
+  fill: rgba(248, 250, 252, 0.22);
+  animation: wave-animation 4s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes wave-animation {
+  from { transform: translateX(-20px); }
+  to { transform: translateX(20px); }
+}
