@@ -28,6 +28,7 @@
   stroke-width: 1;
 }
 
+/* Water Fill Layer with Transition */
 .water-fill {
   transition: y 0.8s cubic-bezier(0.4, 0, 0.2, 1), height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0.85;
@@ -36,7 +37,7 @@
 /* Tier Label Alignment inside SVG */
 .tier-label {
   fill: #ffffff;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-anchor: middle;
   dominant-baseline: central;
