@@ -63,13 +63,14 @@
         <!-- SVG Water-Fill Job Triangle Visualization -->
         <section class="triangle-container">
             <div class="triangle-wrapper">
-                <svg viewBox="0 0 400 360" preserveAspectRatio="xMidYMid meet" id="job-triangle-svg">
+                <svg viewBox="0 0 500 400" preserveAspectRatio="xMidYMid meet" id="job-triangle-svg">
                     <defs>
-                        <clipPath id="clip-tier-closed"><polygon points="200,20 220,60 180,60" /></clipPath>
-                        <clipPath id="clip-tier-offer"><polygon points="180,62 220,62 248,118 152,118" /></clipPath>
-                        <clipPath id="clip-tier-interview"><polygon points="152,120 248,120 288,200 112,200" /></clipPath>
-                        <clipPath id="clip-tier-screening"><polygon points="112,202 288,202 328,280 72,280" /></clipPath>
-                        <clipPath id="clip-tier-applied"><polygon points="72,282 328,282 360,340 40,340" /></clipPath>
+                        <!-- Updated Clip Paths with Better Tier Heights -->
+                        <clipPath id="clip-tier-closed"><polygon points="250,10 285,65 215,65" /></clipPath>
+                        <clipPath id="clip-tier-offer"><polygon points="215,67 285,67 325,135 175,135" /></clipPath>
+                        <clipPath id="clip-tier-interview"><polygon points="175,137 325,137 375,220 125,220" /></clipPath>
+                        <clipPath id="clip-tier-screening"><polygon points="125,222 375,222 425,305 75,305" /></clipPath>
+                        <clipPath id="clip-tier-applied"><polygon points="75,307 425,307 470,380 30,380" /></clipPath>
 
                         <linearGradient id="gold-fill" x1="0%" y1="100%" x2="0%" y2="0%">
                             <stop offset="0%" stop-color="#d97706" />
@@ -81,40 +82,41 @@
                         </linearGradient>
                     </defs>
 
-                    <polygon points="200,20 360,340 40,340" class="triangle-outline" />
+                    <!-- Base Triangle Outline -->
+                    <polygon points="250,10 470,380 30,380" class="triangle-outline" />
 
                     <!-- Tiers -->
                     <g clip-path="url(#clip-tier-closed)">
-                        <rect x="0" y="20" width="400" height="40" class="tier-bg" />
-                        <rect id="fill-closed" x="0" y="60" width="400" height="40" fill="url(#gold-fill)" class="water-fill" />
+                        <rect x="0" y="10" width="500" height="55" class="tier-bg" />
+                        <rect id="fill-closed" x="0" y="65" width="500" height="55" fill="url(#gold-fill)" class="water-fill" />
                     </g>
                     <g clip-path="url(#clip-tier-offer)">
-                        <rect x="0" y="62" width="400" height="56" class="tier-bg" />
-                        <rect id="fill-offer" x="0" y="118" width="400" height="56" fill="url(#gold-fill)" class="water-fill" />
+                        <rect x="0" y="67" width="500" height="68" class="tier-bg" />
+                        <rect id="fill-offer" x="0" y="135" width="500" height="68" fill="url(#gold-fill)" class="water-fill" />
                     </g>
                     <g clip-path="url(#clip-tier-interview)">
-                        <rect x="0" y="120" width="400" height="80" class="tier-bg" />
-                        <rect id="fill-interview" x="0" y="200" width="400" height="80" fill="url(#teal-fill)" class="water-fill" />
+                        <rect x="0" y="137" width="500" height="83" class="tier-bg" />
+                        <rect id="fill-interview" x="0" y="220" width="500" height="83" fill="url(#teal-fill)" class="water-fill" />
                     </g>
                     <g clip-path="url(#clip-tier-screening)">
-                        <rect x="0" y="202" width="400" height="78" class="tier-bg" />
-                        <rect id="fill-screening" x="0" y="280" width="400" height="78" fill="url(#teal-fill)" class="water-fill" />
+                        <rect x="0" y="222" width="500" height="83" class="tier-bg" />
+                        <rect id="fill-screening" x="0" y="305" width="500" height="83" fill="url(#teal-fill)" class="water-fill" />
                     </g>
                     <g clip-path="url(#clip-tier-applied)">
-                        <rect x="0" y="282" width="400" height="58" class="tier-bg" />
-                        <rect id="fill-applied" x="0" y="340" width="400" height="58" fill="url(#teal-fill)" class="water-fill" />
+                        <rect x="0" y="307" width="500" height="73" class="tier-bg" />
+                        <rect id="fill-applied" x="0" y="380" width="500" height="73" fill="url(#teal-fill)" class="water-fill" />
                     </g>
 
-                    <!-- Labels -->
-                    <text x="200" y="42" class="tier-label">CLOSED (<tspan id="count-closed">0</tspan>)</text>
-                    <text x="200" y="90" class="tier-label">OFFER (<tspan id="count-offer">0</tspan>)</text>
-                    <text x="200" y="160" class="tier-label">INTERVIEW (<tspan id="count-interview">0</tspan>)</text>
-                    <text x="200" y="240" class="tier-label">SCREENING (<tspan id="count-screening">0</tspan>)</text>
-                    <text x="200" y="310" class="tier-label">APPLIED (<tspan id="count-applied">0</tspan>)</text>
+                    <!-- Scaled Tier Labels -->
+                    <text x="250" y="48" class="tier-label label-apex">CLOSED (<tspan id="count-closed">0</tspan>)</text>
+                    <text x="250" y="105" class="tier-label">OFFER (<tspan id="count-offer">0</tspan>)</text>
+                    <text x="250" y="180" class="tier-label">INTERVIEW (<tspan id="count-interview">0</tspan>)</text>
+                    <text x="250" y="265" class="tier-label">SCREENING (<tspan id="count-screening">0</tspan>)</text>
+                    <text x="250" y="348" class="tier-label">APPLIED (<tspan id="count-applied">0</tspan>)</text>
                 </svg>
             </div>
         </section>
-
+        
         <!-- Application Form Drawer -->
         <section class="form-card hidden" id="form-section">
             <div class="form-header">
