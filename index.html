@@ -301,11 +301,12 @@
           btnToggleForm.classList.remove('hidden');
 
           authHeaderSlot.innerHTML = `
-            <div class="user-profile">
-              <img src="${user.photoURL}" class="user-avatar" alt="Avatar">
-              <button onclick="firebase.auth().signOut()" class="badge" style="background:none; border:1px solid var(--border-color); cursor:pointer;">Logout</button>
-            </div>
-          `;
+  <div class="user-profile">
+    <img src="${user.photoURL}" class="user-avatar" alt="Avatar">
+    <button onclick="firebase.auth().signOut()" class="badge" style="background-color: #ef4444; color: #ffffff; border: none; cursor: pointer; padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-weight: 600;">Logout</button>
+  </div>
+`;
+            
           await refresh();
         } else {
           authScreen.classList.remove('hidden');
