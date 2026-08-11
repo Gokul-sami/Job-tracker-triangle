@@ -13,7 +13,47 @@
     <link rel="stylesheet" href="css/triangle.css">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        /* Auth Screen Styles */
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+            text-align: center;
+        }
+        .btn-google {
+            background-color: #ffffff;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s;
+        }
+        .btn-google:hover {
+            background-color: #f8fafc;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -24,133 +64,166 @@
                 <h1>Job Triangle</h1>
             </div>
             <div class="header-status">
-                <span id="storage-badge" class="badge mode-local">Local Mode</span>
-                <button id="btn-toggle-form" class="btn btn-primary" type="button">+ Add Job</button>
+                <div id="auth-header-slot"></div>
+                <button id="btn-toggle-form" class="btn btn-primary hidden" type="button">+ Add Job</button>
             </div>
         </header>
 
-        <!-- Analytics Dashboard Panel -->
-        <section class="analytics-panel" id="analytics-panel">
-            <div class="metric-card">
-                <span class="metric-label">Applications (Month)</span>
-                <span class="metric-value" id="metric-month-count">0</span>
-            </div>
-            <div class="metric-card">
-                <span class="metric-label">Response Rate</span>
-                <span class="metric-value" id="metric-response-rate">0%</span>
-                <span class="metric-subtext">Screenings / Applied</span>
-            </div>
-            <div class="metric-card">
-                <span class="metric-label">Interview Conversion</span>
-                <span class="metric-value" id="metric-conversion-rate">0%</span>
-                <span class="metric-subtext">Offers / Interviews</span>
-            </div>
-            <div class="metric-card">
-                <span class="metric-label">Avg Days in Stage</span>
-                <span class="metric-value" id="metric-avg-days">0d</span>
-            </div>
-        </section>
+        <!-- Auth Gate (Shown when logged out) -->
+        <div id="auth-screen" class="auth-container">
+            <h2 style="margin-bottom: 0.5rem;">Private Job Tracker</h2>
+            <p style="color: #94a3b8; margin-bottom: 1.5rem;">Sign in with your Google account to access your job applications.</p>
+            <button id="btn-login-google" class="btn-google">
+                <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.616z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+                Sign in with Google
+            </button>
+        </div>
 
-        <!-- Alerts & Reminders Banner -->
-        <section class="alerts-banner hidden" id="alerts-banner">
-            <div class="alerts-header">
-                <span class="alert-icon">⚠️</span>
-                <strong>Action Items & Follow-ups Required</strong>
-            </div>
-            <ul class="alerts-list" id="alerts-list"></ul>
-        </section>
+        <!-- Main Dashboard Content (Hidden until authenticated) -->
+        <div id="dashboard-content" class="hidden">
+            <!-- Analytics Dashboard Panel -->
+            <section class="analytics-panel" id="analytics-panel">
+                <div class="metric-card">
+                    <span class="metric-label">Applications (Month)</span>
+                    <span class="metric-value" id="metric-month-count">0</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Response Rate</span>
+                    <span class="metric-value" id="metric-response-rate">0%</span>
+                    <span class="metric-subtext">Screenings / Applied</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Interview Conversion</span>
+                    <span class="metric-value" id="metric-conversion-rate">0%</span>
+                    <span class="metric-subtext">Offers / Interviews</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Avg Days in Stage</span>
+                    <span class="metric-value" id="metric-avg-days">0d</span>
+                </div>
+            </section>
 
-        <!-- SVG Water-Fill Job Triangle Visualization -->
-        <section class="triangle-container">
-            <div class="triangle-wrapper">
-                <svg viewBox="0 0 500 400" preserveAspectRatio="xMidYMid meet" id="job-triangle-svg">
-                    <defs>
-                        <!-- Updated Clip Paths with Better Tier Heights -->
-                        <clipPath id="clip-tier-closed"><polygon points="250,10 285,65 215,65" /></clipPath>
-                        <clipPath id="clip-tier-offer"><polygon points="215,67 285,67 325,135 175,135" /></clipPath>
-                        <clipPath id="clip-tier-interview"><polygon points="175,137 325,137 375,220 125,220" /></clipPath>
-                        <clipPath id="clip-tier-screening"><polygon points="125,222 375,222 425,305 75,305" /></clipPath>
-                        <clipPath id="clip-tier-applied"><polygon points="75,307 425,307 470,380 30,380" /></clipPath>
+            <!-- SVG Water-Fill Job Triangle Visualization -->
+            <section class="triangle-container">
+                <div class="triangle-wrapper">
+                    <svg viewBox="0 0 500 400" preserveAspectRatio="xMidYMid meet" id="job-triangle-svg">
+                        <defs>
+                            <clipPath id="clip-tier-closed"><polygon points="250,10 285,65 215,65" /></clipPath>
+                            <clipPath id="clip-tier-offer"><polygon points="215,67 285,67 325,135 175,135" /></clipPath>
+                            <clipPath id="clip-tier-interview"><polygon points="175,137 325,137 375,220 125,220" /></clipPath>
+                            <clipPath id="clip-tier-screening"><polygon points="125,222 375,222 425,305 75,305" /></clipPath>
+                            <clipPath id="clip-tier-applied"><polygon points="75,307 425,307 470,380 30,380" /></clipPath>
 
-                        <linearGradient id="gold-fill" x1="0%" y1="100%" x2="0%" y2="0%">
-                            <stop offset="0%" stop-color="#d97706" />
-                            <stop offset="100%" stop-color="#f59e0b" />
-                        </linearGradient>
-                        <linearGradient id="teal-fill" x1="0%" y1="100%" x2="0%" y2="0%">
-                            <stop offset="0%" stop-color="#0d9488" />
-                            <stop offset="100%" stop-color="#14b8a6" />
-                        </linearGradient>
-                    </defs>
+                            <linearGradient id="gold-fill" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" stop-color="#d97706" />
+                                <stop offset="100%" stop-color="#f59e0b" />
+                            </linearGradient>
+                            <linearGradient id="teal-fill" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" stop-color="#0d9488" />
+                                <stop offset="100%" stop-color="#14b8a6" />
+                            </linearGradient>
+                        </defs>
 
-                    <!-- Base Triangle Outline -->
-                    <polygon points="250,10 470,380 30,380" class="triangle-outline" />
+                        <polygon points="250,10 470,380 30,380" class="triangle-outline" />
 
-                    <!-- Tiers -->
-                    <g clip-path="url(#clip-tier-closed)">
-                        <rect x="0" y="10" width="500" height="55" class="tier-bg" />
-                        <rect id="fill-closed" x="0" y="65" width="500" height="55" fill="url(#gold-fill)" class="water-fill" />
-                    </g>
-                    <g clip-path="url(#clip-tier-offer)">
-                        <rect x="0" y="67" width="500" height="68" class="tier-bg" />
-                        <rect id="fill-offer" x="0" y="135" width="500" height="68" fill="url(#gold-fill)" class="water-fill" />
-                    </g>
-                    <g clip-path="url(#clip-tier-interview)">
-                        <rect x="0" y="137" width="500" height="83" class="tier-bg" />
-                        <rect id="fill-interview" x="0" y="220" width="500" height="83" fill="url(#teal-fill)" class="water-fill" />
-                    </g>
-                    <g clip-path="url(#clip-tier-screening)">
-                        <rect x="0" y="222" width="500" height="83" class="tier-bg" />
-                        <rect id="fill-screening" x="0" y="305" width="500" height="83" fill="url(#teal-fill)" class="water-fill" />
-                    </g>
-                    <g clip-path="url(#clip-tier-applied)">
-                        <rect x="0" y="307" width="500" height="73" class="tier-bg" />
-                        <rect id="fill-applied" x="0" y="380" width="500" height="73" fill="url(#teal-fill)" class="water-fill" />
-                    </g>
+                        <g clip-path="url(#clip-tier-closed)">
+                            <rect x="0" y="10" width="500" height="55" class="tier-bg" />
+                            <rect id="fill-closed" x="0" y="65" width="500" height="55" fill="url(#gold-fill)" class="water-fill" />
+                        </g>
+                        <g clip-path="url(#clip-tier-offer)">
+                            <rect x="0" y="67" width="500" height="68" class="tier-bg" />
+                            <rect id="fill-offer" x="0" y="135" width="500" height="68" fill="url(#gold-fill)" class="water-fill" />
+                        </g>
+                        <g clip-path="url(#clip-tier-interview)">
+                            <rect x="0" y="137" width="500" height="83" class="tier-bg" />
+                            <rect id="fill-interview" x="0" y="220" width="500" height="83" fill="url(#teal-fill)" class="water-fill" />
+                        </g>
+                        <g clip-path="url(#clip-tier-screening)">
+                            <rect x="0" y="222" width="500" height="83" class="tier-bg" />
+                            <rect id="fill-screening" x="0" y="305" width="500" height="83" fill="url(#teal-fill)" class="water-fill" />
+                        </g>
+                        <g clip-path="url(#clip-tier-applied)">
+                            <rect x="0" y="307" width="500" height="73" class="tier-bg" />
+                            <rect id="fill-applied" x="0" y="380" width="500" height="73" fill="url(#teal-fill)" class="water-fill" />
+                        </g>
 
-                    <!-- Scaled Tier Labels -->
-                    <text x="250" y="48" class="tier-label label-apex">CLOSED (<tspan id="count-closed">0</tspan>)</text>
-                    <text x="250" y="105" class="tier-label">OFFER (<tspan id="count-offer">0</tspan>)</text>
-                    <text x="250" y="180" class="tier-label">INTERVIEW (<tspan id="count-interview">0</tspan>)</text>
-                    <text x="250" y="265" class="tier-label">SCREENING (<tspan id="count-screening">0</tspan>)</text>
-                    <text x="250" y="348" class="tier-label">APPLIED (<tspan id="count-applied">0</tspan>)</text>
-                </svg>
-            </div>
-        </section>
-        
-        <!-- Application Form Drawer -->
-        <section class="form-card hidden" id="form-section">
-            <div class="form-header">
-                <h3 id="form-title">Add Job Application</h3>
-                <button type="button" class="btn-close" id="btn-close-form">✕</button>
-            </div>
-            <form id="job-form">
-                <input type="hidden" id="app-id">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="company">Company Name *</label>
-                        <input type="text" id="company" required placeholder="e.g. Google">
+                        <text x="250" y="48" class="tier-label label-apex">CLOSED (<tspan id="count-closed">0</tspan>)</text>
+                        <text x="250" y="105" class="tier-label">OFFER (<tspan id="count-offer">0</tspan>)</text>
+                        <text x="250" y="180" class="tier-label">INTERVIEW (<tspan id="count-interview">0</tspan>)</text>
+                        <text x="250" y="265" class="tier-label">SCREENING (<tspan id="count-screening">0</tspan>)</text>
+                        <text x="250" y="348" class="tier-label">APPLIED (<tspan id="count-applied">0</tspan>)</text>
+                    </svg>
+                </div>
+            </section>
+
+            <!-- Application Form Drawer -->
+            <section class="form-card hidden" id="form-section">
+                <div class="form-header">
+                    <h3 id="form-title">Add Job Application</h3>
+                    <button type="button" class="btn-close" id="btn-close-form">✕</button>
+                </div>
+                <form id="job-form">
+                    <input type="hidden" id="app-id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="company">Company Name *</label>
+                            <input type="text" id="company" required placeholder="e.g. Google">
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Role Title *</label>
+                            <input type="text" id="role" required placeholder="e.g. Software Engineer">
+                        </div>
+                        <div class="form-group">
+                            <label for="dateApplied">Date Applied *</label>
+                            <input type="date" id="dateApplied" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="source">Source</label>
+                            <select id="source">
+                                <option value="LinkedIn">LinkedIn</option>
+                                <option value="Referral">Referral</option>
+                                <option value="Job Portal">Job Portal</option>
+                                <option value="Direct DM">Direct DM / Outreach</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Stage Status</label>
+                            <select id="status">
+                                <option value="Applied">Applied</option>
+                                <option value="Screening">Screening</option>
+                                <option value="Interview">Interview</option>
+                                <option value="Offer">Offer</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dueDate">Next Action Due Date</label>
+                            <input type="date" id="dueDate">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="role">Role Title *</label>
-                        <input type="text" id="role" required placeholder="e.g. Software Engineer">
+                    <div class="form-group full-width">
+                        <label for="nextAction">Next Action / Follow-up</label>
+                        <input type="text" id="nextAction" placeholder="e.g. Send thank you note to recruiter">
                     </div>
-                    <div class="form-group">
-                        <label for="dateApplied">Date Applied *</label>
-                        <input type="date" id="dateApplied" required>
+                    <div class="form-group full-width">
+                        <label for="notes">Notes / Prep Details</label>
+                        <textarea id="notes" rows="2" placeholder="Interview panel notes, CTC discussed, or rejection learning..."></textarea>
                     </div>
-                    <div class="form-group">
-                        <label for="source">Source</label>
-                        <select id="source">
-                            <option value="LinkedIn">LinkedIn</option>
-                            <option value="Referral">Referral</option>
-                            <option value="Job Portal">Job Portal</option>
-                            <option value="Direct DM">Direct DM / Outreach</option>
-                            <option value="Other">Other</option>
-                        </select>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btn-cancel-form">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Application</button>
                     </div>
-                    <div class="form-group">
-                        <label for="status">Stage Status</label>
-                        <select id="status">
+                </form>
+            </section>
+
+            <!-- Applications Table Section -->
+            <section class="table-section">
+                <div class="table-controls">
+                    <h2>Pipeline Applications</h2>
+                    <div class="filter-controls">
+                        <select id="filter-status">
+                            <option value="ALL">All Stages</option>
                             <option value="Applied">Applied</option>
                             <option value="Screening">Screening</option>
                             <option value="Interview">Interview</option>
@@ -158,135 +231,114 @@
                             <option value="Closed">Closed</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="dueDate">Next Action Due Date</label>
-                        <input type="date" id="dueDate">
-                    </div>
                 </div>
-                <div class="form-group full-width">
-                    <label for="nextAction">Next Action / Follow-up</label>
-                    <input type="text" id="nextAction" placeholder="e.g. Send thank you note to recruiter">
+                <div class="table-responsive">
+                    <table class="app-table">
+                        <thead>
+                            <tr>
+                                <th>Company & Role</th>
+                                <th>Date Applied</th>
+                                <th>Source</th>
+                                <th>Status Stage</th>
+                                <th>Next Action / Due</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="app-table-body">
+                            <!-- Dynamic Rows Inserted Here -->
+                        </tbody>
+                    </table>
                 </div>
-                <div class="form-group full-width">
-                    <label for="notes">Notes / Prep Details</label>
-                    <textarea id="notes" rows="2" placeholder="Interview panel notes, CTC discussed, or rejection learning..."></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="btn-cancel-form">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Application</button>
-                </div>
-            </form>
-        </section>
-
-        <!-- Applications Table Section -->
-        <section class="table-section">
-            <div class="table-controls">
-                <h2>Pipeline Applications</h2>
-                <div class="filter-controls">
-                    <select id="filter-status">
-                        <option value="ALL">All Stages</option>
-                        <option value="Applied">Applied</option>
-                        <option value="Screening">Screening</option>
-                        <option value="Interview">Interview</option>
-                        <option value="Offer">Offer</option>
-                        <option value="Closed">Closed</option>
-                    </select>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="app-table">
-                    <thead>
-                        <tr>
-                            <th>Company & Role</th>
-                            <th>Date Applied</th>
-                            <th>Source</th>
-                            <th>Status Stage</th>
-                            <th>Next Action / Due</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="app-table-body">
-                        <!-- Dynamic Rows Inserted Here -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            </section>
+        </div>
     </div>
 
     <!-- Application Script -->
     <script>
-      // 1. FIREBASE CONFIGURATION - PASTE YOUR REAL KEYS HERE
+      // FIREBASE CONFIGURATION
       const firebaseConfig = {
-        apiKey: "AIzaSyB5A-lGNb7hL8YN2nFTQvuV4sX81bZ_2Co",
-        authDomain: "job-triangle-tracker.firebaseapp.com",
-        projectId: "job-triangle-tracker",
-        storageBucket: "job-triangle-tracker.firebasestorage.app",
-        messagingSenderId: "848562324918",
-        appId: "1:848562324918:web:09a59bbb9cf0a3952e2d17",
-        measurementId: "G-KHP0ZGRYY1"
-      };
+  apiKey: "AIzaSyB5A-lGNb7hL8YN2nFTQvuV4sX81bZ_2Co",
+  authDomain: "job-triangle-tracker.firebaseapp.com",
+  projectId: "job-triangle-tracker",
+  storageBucket: "job-triangle-tracker.firebasestorage.app",
+  messagingSenderId: "848562324918",
+  appId: "1:848562324918:web:09a59bbb9cf0a3952e2d17"
+};
 
       let db = null;
-      let isFirebase = false;
+      let currentUser = null;
 
-      // Initialize Firebase
       if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "YOUR_API_KEY") {
         try {
           if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
           db = firebase.firestore();
-          isFirebase = true;
         } catch (e) {
-          console.error("Firebase connection failed:", e);
+          console.error("Firebase initialization failed:", e);
         }
       }
 
-      // App State
       let apps = [];
+
+      // Google Sign In Handler
+      document.getElementById('btn-login-google').onclick = () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider).catch(err => {
+          alert('Sign-in failed: ' + err.message);
+        });
+      };
+
+      // Auth State Observer
+      firebase.auth().onAuthStateChanged(async (user) => {
+        currentUser = user;
+        const authHeaderSlot = document.getElementById('auth-header-slot');
+        const authScreen = document.getElementById('auth-screen');
+        const dashboardContent = document.getElementById('dashboard-content');
+        const btnToggleForm = document.getElementById('btn-toggle-form');
+
+        if (user) {
+          authScreen.classList.add('hidden');
+          dashboardContent.classList.remove('hidden');
+          btnToggleForm.classList.remove('hidden');
+
+          authHeaderSlot.innerHTML = `
+            <div class="user-profile">
+              <img src="${user.photoURL}" class="user-avatar" alt="Avatar">
+              <button onclick="firebase.auth().signOut()" class="badge" style="background:none; border:1px solid var(--border-color); cursor:pointer;">Logout</button>
+            </div>
+          `;
+          await refresh();
+        } else {
+          authScreen.classList.remove('hidden');
+          dashboardContent.classList.add('hidden');
+          btnToggleForm.classList.add('hidden');
+          authHeaderSlot.innerHTML = '';
+        }
+      });
 
       // Storage Operations
       async function loadApps() {
-        if (isFirebase && db) {
-          const snapshot = await db.collection('applications').get();
-          return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        } else {
-          const local = localStorage.getItem('job_triangle_apps');
-          return local ? JSON.parse(local) : [];
-        }
+        if (!currentUser || !db) return [];
+        const snapshot = await db.collection('applications').get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       }
 
       async function saveApp(data) {
-        if (isFirebase && db) {
-          if (data.id) {
-            const id = data.id;
-            delete data.id;
-            await db.collection('applications').doc(id).set(data, { merge: true });
-          } else {
-            delete data.id;
-            await db.collection('applications').add(data);
-          }
+        if (!currentUser || !db) return;
+        if (data.id) {
+          const id = data.id;
+          delete data.id;
+          await db.collection('applications').doc(id).set(data, { merge: true });
         } else {
-          let list = JSON.parse(localStorage.getItem('job_triangle_apps') || '[]');
-          if (data.id) {
-            list = list.map(a => a.id === data.id ? data : a);
-          } else {
-            data.id = 'loc_' + Date.now();
-            list.push(data);
-          }
-          localStorage.setItem('job_triangle_apps', JSON.stringify(list));
+          delete data.id;
+          await db.collection('applications').add(data);
         }
       }
 
       async function deleteApp(id) {
-        if (isFirebase && db) {
-          await db.collection('applications').doc(id).delete();
-        } else {
-          let list = JSON.parse(localStorage.getItem('job_triangle_apps') || '[]');
-          list = list.filter(a => a.id !== id);
-          localStorage.setItem('job_triangle_apps', JSON.stringify(list));
-        }
+        if (!currentUser || !db) return;
+        await db.collection('applications').doc(id).delete();
       }
 
-      // Render Functions
       function updateTriangle(data) {
         const counts = { Applied: 0, Screening: 0, Interview: 0, Offer: 0, Closed: 0 };
         data.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
@@ -337,17 +389,7 @@
         renderTable(apps);
       }
 
-      // DOM Initialization
-      document.addEventListener('DOMContentLoaded', async () => {
-        const badge = document.getElementById('storage-badge');
-        if (isFirebase) {
-          badge.textContent = 'Firebase Mode';
-          badge.className = 'badge mode-firebase';
-        } else {
-          badge.textContent = 'Local Mode';
-          badge.className = 'badge mode-local';
-        }
-
+      document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dateApplied').value = new Date().toISOString().split('T')[0];
 
         document.getElementById('btn-toggle-form').onclick = () => {
@@ -379,9 +421,7 @@
         };
 
         document.getElementById('filter-status').onchange = () => renderTable(apps);
-
-        await refresh();
       });
     </script>
 </body>
-    </html>
+</html>
