@@ -1,12 +1,13 @@
 // Firebase Configuration Setup
 // Replace the placeholder values with your Firebase project credentials to enable cross-device cloud sync.
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB5A-lGNb7hL8YN2nFTQvuV4sX81bZ_2Co",
+  authDomain: "job-triangle-tracker.firebaseapp.com",
+  projectId: "job-triangle-tracker",
+  storageBucket: "job-triangle-tracker.firebasestorage.app",
+  messagingSenderId: "848562324918",
+  appId: "1:848562324918:web:09a59bbb9cf0a3952e2d17",
+  measurementId: "G-KHP0ZGRYY1"
 };
 
 let db = null;
