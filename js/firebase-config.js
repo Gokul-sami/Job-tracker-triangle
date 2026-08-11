@@ -10,30 +10,26 @@ export const firebaseConfig = {
   measurementId: "G-KHP0ZGRYY1"
 };
 
-let db = null;
-let isFirebaseEnabled = false;
-
 export function initFirebase() {
-  const isConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY";
+  let db = null;
+  let isFirebaseEnabled = false;
 
-  if (isConfigured && typeof firebase !== 'undefined') {
+  const hasValidKeys = firebaseConfig.apiKey && 
+                       firebaseConfig.apiKey !== "YOUR_API_KEY" && 
+                       !firebaseConfig.apiKey.includes("PASTE_YOUR");
+
+  if (hasValidKeys && typeof window.firebase !== 'undefined') {
     try {
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+      if (!window.firebase.apps.length) {
+        window.firebase.initializeApp(firebaseConfig);
       }
-      db = firebase.firestore();
+      db = window.firebase.firestore();
       isFirebaseEnabled = true;
-      console.log("Firebase Firestore initialized successfully.");
+      console.log("Firebase Firestore successfully connected.");
     } catch (err) {
-      console.warn("Firebase initialization failed, falling back to LocalStorage:", err);
-      isFirebaseEnabled = false;
+      console.error("Firebase init error:", err);
     }
-  } else {
-    console.log("Firebase credentials not configured. Operating in LocalStorage mode.");
-    isFirebaseEnabled = false;
   }
 
   return { db, isFirebaseEnabled };
 }
-
-export { db, isFirebaseEnabled };
