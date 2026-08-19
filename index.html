@@ -170,12 +170,56 @@
                             <input type="text" id="company" required placeholder="e.g. Google">
                         </div>
                         <div class="form-group">
-                            <label for="role">Role Title *</label>
+                            <label for="role">Job Title *</label>
                             <input type="text" id="role" required placeholder="e.g. Software Engineer">
+                        </div>
+                        <div class="form-group">
+                            <label for="jobLink">Job Link *</label>
+                            <input type="url" id="jobLink" required placeholder="e.g. https://google.com/jobs/...">
                         </div>
                         <div class="form-group">
                             <label for="dateApplied">Date Applied *</label>
                             <input type="date" id="dateApplied" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deadline">Deadline *</label>
+                            <input type="date" id="deadline" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="typeOfJob">Type of Job *</label>
+                            <select id="typeOfJob" required>
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                                <option value="Contract">Contract</option>
+                                <option value="Internship">Internship</option>
+                                <option value="Freelance">Freelance</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="salary">Salary (Annual) *</label>
+                            <input type="number" id="salary" required placeholder="e.g. 120000" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="contactInfo">Contact Email/LinkedIn *</label>
+                            <input type="text" id="contactInfo" required placeholder="e.g. recruiter@company.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="location">Location *</label>
+                            <input type="text" id="location" required placeholder="e.g. Remote or New York, NY">
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Application Status *</label>
+                            <select id="status" required>
+                                <option value="Applied">Applied</option>
+                                <option value="Screening">Screening</option>
+                                <option value="Interview">Interview</option>
+                                <option value="Offer">Offer</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="interviewDate">Interview Date *</label>
+                            <input type="date" id="interviewDate" required>
                         </div>
                         <div class="form-group">
                             <label for="source">Source</label>
@@ -188,27 +232,17 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="status">Stage Status</label>
-                            <select id="status">
-                                <option value="Applied">Applied</option>
-                                <option value="Screening">Screening</option>
-                                <option value="Interview">Interview</option>
-                                <option value="Offer">Offer</option>
-                                <option value="Closed">Closed</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
                             <label for="dueDate">Next Action Due Date</label>
                             <input type="date" id="dueDate">
                         </div>
+                        <div class="form-group full-width">
+                            <label for="nextAction">Next Action / Follow-up</label>
+                            <input type="text" id="nextAction" placeholder="e.g. Send thank you note to recruiter">
+                        </div>
                     </div>
-                    <div class="form-group full-width">
-                        <label for="nextAction">Next Action / Follow-up</label>
-                        <input type="text" id="nextAction" placeholder="e.g. Send thank you note to recruiter">
-                    </div>
-                    <div class="form-group full-width">
+                    <div class="form-group full-width" style="margin-top: 1rem;">
                         <label for="notes">Notes / Prep Details</label>
-                        <textarea id="notes" rows="2" placeholder="Interview panel notes, CTC discussed, or rejection learning..."></textarea>
+                        <textarea id="notes" rows="3" placeholder="Interview panel notes, CTC discussed, or rejection learning..."></textarea>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" id="btn-cancel-form">Cancel</button>
@@ -222,6 +256,7 @@
                 <div class="table-controls">
                     <h2>Pipeline Applications</h2>
                     <div class="filter-controls">
+                        <input type="text" id="filter-search" placeholder="Search company, title, location...">
                         <select id="filter-status">
                             <option value="ALL">All Stages</option>
                             <option value="Applied">Applied</option>
@@ -230,17 +265,32 @@
                             <option value="Offer">Offer</option>
                             <option value="Closed">Closed</option>
                         </select>
+                        <select id="filter-type">
+                            <option value="ALL">All Job Types</option>
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Internship">Internship</option>
+                            <option value="Freelance">Freelance</option>
+                        </select>
+                        <select id="filter-sort">
+                            <option value="date-desc">Date Applied: Newest</option>
+                            <option value="date-asc">Date Applied: Oldest</option>
+                            <option value="salary-desc">Salary: High to Low</option>
+                            <option value="deadline-asc">Deadline: Soonest</option>
+                        </select>
                     </div>
                 </div>
                 <div class="table-responsive">
                     <table class="app-table">
                         <thead>
                             <tr>
-                                <th>Company & Role</th>
-                                <th>Date Applied</th>
-                                <th>Source</th>
+                                <th>Company & Job Title</th>
+                                <th>Job Link</th>
+                                <th>Details</th>
+                                <th>Timeline</th>
+                                <th>Contact Info</th>
                                 <th>Status Stage</th>
-                                <th>Next Action / Due</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -353,29 +403,114 @@
 
       function renderTable(data) {
         const tbody = document.getElementById('app-table-body');
-        const filter = document.getElementById('filter-status').value;
+        const filterStatus = document.getElementById('filter-status').value;
+        const filterType = document.getElementById('filter-type').value;
+        const filterSearch = document.getElementById('filter-search').value.toLowerCase().trim();
+        const filterSort = document.getElementById('filter-sort').value;
+
         tbody.innerHTML = '';
 
-        const filtered = data.filter(a => filter === 'ALL' || a.status === filter);
+        let filtered = data.filter(a => {
+          const matchesStatus = (filterStatus === 'ALL' || a.status === filterStatus);
+          const matchesType = (filterType === 'ALL' || (a.typeOfJob || 'Full-time') === filterType);
+          
+          const companyName = (a.company || '').toLowerCase();
+          const jobTitle = (a.role || '').toLowerCase();
+          const location = (a.location || '').toLowerCase();
+          const matchesSearch = !filterSearch || 
+                                companyName.includes(filterSearch) || 
+                                jobTitle.includes(filterSearch) || 
+                                location.includes(filterSearch);
+                                
+          return matchesStatus && matchesType && matchesSearch;
+        });
+
+        filtered.sort((a, b) => {
+          if (filterSort === 'date-desc') {
+            return new Date(b.dateApplied || 0) - new Date(a.dateApplied || 0);
+          } else if (filterSort === 'date-asc') {
+            return new Date(a.dateApplied || 0) - new Date(b.dateApplied || 0);
+          } else if (filterSort === 'salary-desc') {
+            return (Number(b.salary) || 0) - (Number(a.salary) || 0);
+          } else if (filterSort === 'deadline-asc') {
+            const dateA = a.deadline ? new Date(a.deadline) : new Date('9999-12-31');
+            const dateB = b.deadline ? new Date(b.deadline) : new Date('9999-12-31');
+            return dateA - dateB;
+          }
+          return 0;
+        });
 
         if (filtered.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 1.5rem; color: #94a3b8;">No applications found. Tap + Add Job to start!</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 1.5rem; color: #94a3b8;">No applications found. Try adjusting your filters or add a new job!</td></tr>';
           return;
         }
 
         filtered.forEach(a => {
           const tr = document.createElement('tr');
+          const formattedSalary = a.salary ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(a.salary) : '$0';
+          const linkHtml = a.jobLink && a.jobLink !== '#' && a.jobLink !== 'https://' ? `<a href="${a.jobLink}" target="_blank" class="job-link-btn" title="View Job Description">🔗 Link</a>` : '<span style="color:#64748b">N/A</span>';
+          
           tr.innerHTML = `
-            <td><strong>${a.company}</strong><br><small style="color:#94a3b8">${a.role}</small></td>
-            <td>${a.dateApplied}</td>
-            <td>${a.source}</td>
+            <td>
+              <strong>${a.company}</strong><br>
+              <small style="color:#94a3b8">${a.role}</small>
+            </td>
+            <td>${linkHtml}</td>
+            <td>
+              <div style="font-size: 0.85rem;">
+                <div>📍 ${a.location || 'N/A'}</div>
+                <div>💼 ${a.typeOfJob || 'Full-time'}</div>
+                <div style="color: var(--accent-gold); font-weight: 500;">💰 ${formattedSalary}</div>
+              </div>
+            </td>
+            <td>
+              <div style="font-size: 0.85rem;">
+                <div>📅 Applied: ${a.dateApplied}</div>
+                <div>🚨 Deadline: ${a.deadline || '-'}</div>
+                <div>🗣️ Interview: ${a.interviewDate || '-'}</div>
+              </div>
+            </td>
+            <td>
+              <span style="font-size: 0.85rem; color:#cbd5e1">${a.contactInfo || '-'}</span>
+            </td>
             <td><span class="status-badge status-${a.status}">${a.status}</span></td>
-            <td>${a.nextAction || '-'}</td>
-            <td><button onclick="removeApp('${a.id}')" style="background:none;border:none;cursor:pointer;">🗑️</button></td>
+            <td>
+              <div style="display:flex; gap: 0.5rem;">
+                <button onclick="editApp('${a.id}')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;" title="Edit">✏️</button>
+                <button onclick="removeApp('${a.id}')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;" title="Delete">🗑️</button>
+              </div>
+            </td>
           `;
           tbody.appendChild(tr);
         });
       }
+
+      window.editApp = function(id) {
+        const app = apps.find(a => a.id === id);
+        if (!app) return;
+
+        document.getElementById('form-title').textContent = 'Edit Job Application';
+        document.getElementById('app-id').value = app.id;
+        
+        document.getElementById('company').value = app.company || '';
+        document.getElementById('role').value = app.role || '';
+        document.getElementById('jobLink').value = app.jobLink || '';
+        document.getElementById('dateApplied').value = app.dateApplied || '';
+        document.getElementById('deadline').value = app.deadline || '';
+        document.getElementById('typeOfJob').value = app.typeOfJob || 'Full-time';
+        document.getElementById('salary').value = app.salary || '0';
+        document.getElementById('contactInfo').value = app.contactInfo || '';
+        document.getElementById('location').value = app.location || '';
+        document.getElementById('status').value = app.status || 'Applied';
+        document.getElementById('interviewDate').value = app.interviewDate || '';
+        document.getElementById('source').value = app.source || 'LinkedIn';
+        document.getElementById('dueDate').value = app.dueDate || '';
+        document.getElementById('nextAction').value = app.nextAction || '';
+        document.getElementById('notes').value = app.notes || '';
+
+        document.getElementById('form-section').classList.remove('hidden');
+        document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+      };
 
       window.removeApp = async function(id) {
         if (confirm('Delete this application?')) {
@@ -391,9 +526,37 @@
       }
 
       document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('dateApplied').value = new Date().toISOString().split('T')[0];
+        // Function to set smart defaults for "Add Job"
+        const setFormDefaults = () => {
+          const today = new Date().toISOString().split('T')[0];
+          document.getElementById('dateApplied').value = today;
+          
+          const future14 = new Date();
+          future14.setDate(future14.getDate() + 14);
+          document.getElementById('deadline').value = future14.toISOString().split('T')[0];
+          
+          const future7 = new Date();
+          future7.setDate(future7.getDate() + 7);
+          document.getElementById('interviewDate').value = future7.toISOString().split('T')[0];
+          
+          document.getElementById('salary').value = '100000';
+          document.getElementById('typeOfJob').value = 'Full-time';
+          document.getElementById('location').value = 'Remote';
+          document.getElementById('contactInfo').value = 'N/A';
+          document.getElementById('jobLink').value = 'https://';
+          document.getElementById('status').value = 'Applied';
+          document.getElementById('source').value = 'LinkedIn';
+          document.getElementById('dueDate').value = '';
+          document.getElementById('nextAction').value = '';
+          document.getElementById('notes').value = '';
+        };
+
+        setFormDefaults();
 
         document.getElementById('btn-toggle-form').onclick = () => {
+          document.getElementById('form-title').textContent = 'Add Job Application';
+          document.getElementById('app-id').value = '';
+          setFormDefaults();
           document.getElementById('form-section').classList.remove('hidden');
         };
 
@@ -405,14 +568,23 @@
 
         document.getElementById('job-form').onsubmit = async (e) => {
           e.preventDefault();
+          const appId = document.getElementById('app-id').value;
           const formData = {
+            id: appId || null,
             company: document.getElementById('company').value.trim(),
             role: document.getElementById('role').value.trim(),
+            jobLink: document.getElementById('jobLink').value.trim(),
             dateApplied: document.getElementById('dateApplied').value,
-            source: document.getElementById('source').value,
+            deadline: document.getElementById('deadline').value,
+            typeOfJob: document.getElementById('typeOfJob').value,
+            salary: Number(document.getElementById('salary').value) || 0,
+            contactInfo: document.getElementById('contactInfo').value.trim(),
+            location: document.getElementById('location').value.trim(),
             status: document.getElementById('status').value,
-            nextAction: document.getElementById('nextAction').value.trim(),
+            interviewDate: document.getElementById('interviewDate').value,
+            source: document.getElementById('source').value,
             dueDate: document.getElementById('dueDate').value,
+            nextAction: document.getElementById('nextAction').value.trim(),
             notes: document.getElementById('notes').value.trim()
           };
           await saveApp(formData);
@@ -421,7 +593,11 @@
           await refresh();
         };
 
-        document.getElementById('filter-status').onchange = () => renderTable(apps);
+        // Wire up all filters
+        document.getElementById('filter-status').onchange = 
+        document.getElementById('filter-type').onchange = 
+        document.getElementById('filter-sort').onchange = 
+        document.getElementById('filter-search').oninput = () => renderTable(apps);
       });
     </script>
 </body>

@@ -37,7 +37,13 @@ body {
   padding: 1.5rem 1rem 3rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Ensures a consistent vertical gap between all major sections */
+  gap: 2.5rem; /* Ensures a consistent vertical gap between all major sections */
+}
+
+#dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem; /* Ensures a consistent vertical gap between dashboard sections */
 }
 
 /* Header */
@@ -188,6 +194,12 @@ body {
   }
 }
 
+@media (min-width: 900px) {
+  .form-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -239,10 +251,18 @@ body {
 
 .table-controls {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 1.25rem;
   gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .table-controls {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .table-controls h2 {
@@ -250,6 +270,20 @@ body {
   font-weight: 700;
 }
 
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .filter-controls {
+    width: auto;
+  }
+}
+
+.filter-controls input,
 .filter-controls select {
   background-color: var(--bg-main);
   border: 1px solid var(--border-color);
@@ -257,6 +291,38 @@ body {
   padding: 0.4rem 0.75rem;
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
+  outline: none;
+  min-width: 120px;
+}
+
+.filter-controls input {
+  flex-grow: 1;
+  min-width: 180px;
+}
+
+@media (min-width: 768px) {
+  .filter-controls input {
+    flex-grow: 0;
+  }
+}
+
+.filter-controls input:focus,
+.filter-controls select:focus {
+  border-color: var(--accent-teal);
+}
+
+.job-link-btn {
+  color: var(--accent-teal);
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.job-link-btn:hover {
+  text-decoration: underline;
+  color: var(--accent-teal-hover);
 }
 
 .table-responsive {
